@@ -1,7 +1,8 @@
 <?php
+
 namespace Alura\Cursos\Controller;
 
-interface InterfaceControladorRequisicao {
-	public function processaRequisicao(): void;
+interface InterfaceControladorRequisicao
+{
+    public function processaRequisicao(): void;
 }
-?>
