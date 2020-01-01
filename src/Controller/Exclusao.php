@@ -1,31 +1,28 @@
 <?php
 
 namespace Alura\Cursos\Controller;
-
 use Alura\Cursos\Entity\Curso;
-use Alura\Cursos\Infra\EntityManagerCreator;
+use Alura\Cursos\Helper\FlashMessageTrait;
+use Doctrine\ORM\EntityManagerInterface;
+use Nyholm\Psr7\Response;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\RequestHandlerInterface;
 
-class Exclusao implements InterfaceControladorRequisicao {
-	/**
-	 * @var \Doctrine\ORM\EntityManagerInterface
-	 */
+class Exclusao implements RequestHandlerInterface {
+	use FlashMessageTrait;
+
 	private $entityManager;
 
-	public function __construct() {
-		$this->entityManager = (new EntityManagerCreator())
-			->getEntityManager();
+	public function __construct(EntityManagerInterface $entityManager) {
+		$this->entityManager = $entityManager;
 	}
 
-	public function processaRequisicao(): void{
-		$id = filter_input(
-			INPUT_GET,
-			'id',
-			FILTER_VALIDATE_INT
-		);
+	public function handle(ServerRequestInterface $request): ResponseInterface{
+		$id = $request->getQueryParams()['id'];
 
 		if (is_null($id) || $id === false) {
-			header('Location: /listar-cursos');
-			return;
+			return new Response(200, ['Location' => '/listar-cursos']);
 		}
 
 		$curso = $this->entityManager->getReference(
@@ -34,8 +31,8 @@ class Exclusao implements InterfaceControladorRequisicao {
 		);
 		$this->entityManager->remove($curso);
 		$this->entityManager->flush();
-		$_SESSION['tipo_mensagem'] = 'success';
-		$_SESSION['mensagem'] = 'Curso excluído com sucesso';
-		header('Location: /listar-cursos');
+		$this->defineMessage('success', 'Curso excluído com sucesso');
+
+		return new Response(200, ['Location' => '/listar-cursos']);
 	}
 }
